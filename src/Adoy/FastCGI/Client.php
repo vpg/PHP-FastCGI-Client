@@ -94,7 +94,17 @@ class Client
      */
     private $_keepAlive = false;
 
+    /**
+     * Timer
+     * @var Float
+     */
     public $start = false;
+
+    /**
+     * Format response
+     * @var Boolean
+     */
+    private $_formatResponse = true;
 
     /**
      * Outstanding request statuses keyed by request id
@@ -133,11 +143,13 @@ class Client
      *
      * @param String $host Host of the FastCGI application
      * @param Integer $port Port of the FastCGI application
+     * @param Boolean $formatResponse format FastCGI response 
      */
-    public function __construct($host, $port)
+    public function __construct($host, $port, $formatResponse = true)
     {
         $this->_host = $host;
         $this->_port = $port;
+        $this->_formatResponse = $formatResponse;
     }
 
     /**
@@ -520,7 +532,11 @@ class Client
         if ($this->_requests[$requestId]['state'] == self::REQ_STATE_OK
             || $this->_requests[$requestId]['state'] == self::REQ_STATE_ERR
         ) {
-            return self::formatResponse($this->_requests[$requestId]['response']);
+            if ($this->_formatResponse) {
+                return self::formatResponse($this->_requests[$requestId]['response']);
+            } else {
+                return $this->_requests[$requestId]['response'];
+            }
         }
 
         if ($timeoutMs > 0) {
@@ -589,7 +605,11 @@ class Client
                 throw new \Exception('Role value not known [UNKNOWN_ROLE]');
                 break;
             case self::REQUEST_COMPLETE:
-                return self::formatResponse($this->_requests[$requestId]['response']);
+                if ($this->_formatResponse) {
+                    return self::formatResponse($this->_requests[$requestId]['response']);
+                } else {
+                    return $this->_requests[$requestId]['response'];
+                }
         }
     }
 
